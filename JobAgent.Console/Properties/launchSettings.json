@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "JobAgent.Console": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

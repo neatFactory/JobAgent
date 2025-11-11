@@ -1,0 +1,116 @@
+name: Release JobAgent
+
+on:
+  push:
+    # branches:
+    #   - "**"
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} / ${{ matrix.runtime }}
+    runs-on: ${{ matrix.os }}
+    outputs:
+      version: ${{ steps.set_version.outputs.version }} # 🚀 expouse version
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            runtime: linux-x64
+          - os: ubuntu-latest
+            runtime: linux-arm64
+          - os: windows-latest
+            runtime: win-x64
+          - os: macos-latest
+            runtime: osx-x64
+    steps:
+      - name: Set Version
+        id: set_version
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BASE_VERSION="0.0.1"  # default version, can be modified as needed
+          REF="${GITHUB_REF}"
+         
+          # Use tag version
+          if [[ "$REF" == refs/tags/* ]]; then
+            TAG_NAME="${REF#refs/tags/}"
+            TAG_VERSION="${TAG_NAME#[vV]}"  # 去掉 v/V 前缀
+            VERSION="$TAG_VERSION"
+            echo "Detected tag: $TAG_NAME -> VERSION=$VERSION"
+          fi
+
+          # set outputs for version
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Log Version
+        run: |
+          echo "Current Version: ${{ steps.set_version.outputs.version }} "
+
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - run: dotnet restore JobAgent.sln
+      - run: dotnet build JobSamples/JobSamples.csproj -c Release -r ${{ matrix.runtime }} --self-contained false -o ./publish/JobSamples
+      - run: dotnet publish JobAgent.Console/JobAgent.Console.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o ./publish/JobAgent
+      - name: Copy plugin to Console
+        shell: bash
+        run: |
+          mkdir -p ./publish/JobAgent/Plugins/JobSamples
+          cp -r ./publish/JobSamples/* ./publish/JobAgent/Plugins/JobSamples/
+          rm -rf ./publish/JobSamples
+      #- run: zip -r ./publish/JobAgent-${{ matrix.runtime }}.zip ./publish/JobAgent
+      # note: Use PowerShell to create zip for better cross-platform support
+      - name: Zip release
+        shell: pwsh
+        run: |
+          if ($env:RUNNER_OS -eq "Windows") {
+              $source = Resolve-Path ./publish/JobAgent
+              $zip = "./publish/JobAgent_${{ steps.set_version.outputs.version }}_${{ matrix.runtime }}.zip"
+              Copy-Item -Path ./build/scripts/install.bat -Destination $source -Force
+              Compress-Archive -Path "$source\*" -DestinationPath $zip -Force
+          } else {
+              & zip -r ./publish/JobAgent_${{ steps.set_version.outputs.version }}_${{ matrix.runtime }}.zip ./publish/JobAgent
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JobAgent_${{ steps.set_version.outputs.version }}_${{ matrix.runtime }}
+          path: ./publish/JobAgent_${{ steps.set_version.outputs.version }}_${{ matrix.runtime }}.zip
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    # 👇 only has a tag then run.
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Log version
+        shell: bash
+        run: |
+          echo "Version from build: ${{ needs.build.outputs.version }}"
+      - uses: actions/checkout@v3
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./publish
+
+      - name: Create Release & Upload assets
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: v${{ needs.build.outputs.version }}
+          #tag_name: v${{ needs.build.outputs.version }} # It is necessary to have a TAG. When OrTag is triggered, this is not used, otherwise it will modify the original TAG.
+          files: ./publish/**/*.zip
+          draft: false
+          #prerelease: ${{ needs.build.outputs.phase != 'Release' }}

@@ -1,0 +1,83 @@
+name: Docker JobAgent
+
+on:
+  push:
+    # branches:
+    #   - "**"
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+env:
+  # 两个镜像前缀
+  DOCKERHUB_REPO: aicrosoft/jobagent
+  GHCR_REPO: ghcr.io/${{ github.repository_owner }}/jobagent
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # ③ 允许写包
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set Version
+        id: set_version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BASE_VERSION="0.0.1"  # default version, can be modified as needed
+          REF="${GITHUB_REF}"
+         
+          # Use tag version
+          if [[ "$REF" == refs/tags/* ]]; then
+            TAG_NAME="${REF#refs/tags/}"
+            TAG_VERSION="${TAG_NAME#[vV]}"  # 去掉 v/V 前缀
+            VERSION="$TAG_VERSION"
+            echo "Detected tag: $TAG_NAME -> VERSION=$VERSION"
+          fi
+
+          # set outputs for version
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+         
+      - name: Docker Tag Version
+        run: |
+          echo "Docker Tag: ${{ steps.set_version.outputs.version }} "
+
+      - name: set lowercase image name
+        run: |
+          echo "GHCR_REPO_LC=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/jobagent" >> $GITHUB_ENV
+
+      # 1. 登录 DockerHub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 2. 登录 GitHub Packages
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. 一次构建 + 同时推两个库
+      - name: Build and push (multi-registry)
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: build/dockerfiles/Dockerfile.jobagent
+          push: true
+          # 同一份镜像层，两个仓库、两个 tag
+          tags: |
+            ${{ env.DOCKERHUB_REPO }}:latest
+            ${{ env.DOCKERHUB_REPO }}:${{ steps.set_version.outputs.version }}
+            ${{ env.GHCR_REPO_LC }}:latest
+            ${{ env.GHCR_REPO_LC }}:${{ steps.set_version.outputs.version }}
+
+            
