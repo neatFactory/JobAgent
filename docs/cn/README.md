@@ -707,7 +707,7 @@ install -u  # uninstall it
 可用的 docker 注册表：
 - <https://hub.docker.com/r/aicrosoft/jobagent>
 - <https://github.com/neatFactory/JobAgent/pkgs/container/jobagent>
-访问 <https://hub.docker.com/r/aicrosoft/jobagent> 获取最新的 docker 镜像。
+> 访问 <https://hub.docker.com/r/aicrosoft/jobagent> 获取最新的 docker 镜像。
 
 ```shell
 ## 在宿主机预建空目录并赋权

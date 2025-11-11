@@ -708,7 +708,7 @@ Available Docker registries:
 
 - <https://hub.docker.com/r/aicrosoft/jobagent>
 - <https://github.com/neatFactory/JobAgent/pkgs/container/jobagent>
-Visit <https://hub.docker.com/r/aicrosoft/jobagent> to get the latest Docker image.
+> Visit <https://hub.docker.com/r/aicrosoft/jobagent> to get the latest Docker image.
 
 ```shell
 ## Pre-create Empty Directories on the Host Machine and Assign Permissions
