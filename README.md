@@ -18,7 +18,7 @@
 [9]: https://img.shields.io/badge/license-Apache-blue.svg
 [10]: LICENSE
 
- 👉 [查看中文帮助文档](./docs/cn/README.md) 📖
+📖👉 [查看中文帮助文档](./docs/cn/README.md) 
 
 [JobAgent](https://github.com/neatFactory/JobAgent) is a task scheduling client that is easy to use and expand, and accepts various job trigger types. It is implemented using the [JobsFactory](https://www.nuget.org/packages/Aicrosoft.Scheduling/) task scheduling framework. It is written in [dotnet8](https://dotnet.microsoft.com/en-us/). It is an upgrade and refactoring of my earlier open-source project [BeesTask](https://github.com/Aicrosoft/BeesTask) .
 
@@ -60,6 +60,7 @@ NOTE: `Job type extensions are not supported at the moment`.
   - [Applicable Scenarios](#applicable-scenarios)
   - [Common Usage Examples](#common-usage-examples)
   - [Supported Task Types](#supported-task-types)
+- [Project structure](#project-structure)
 - [Quick Start (Simple Example)](#quick-start-simple-example)
   - [Lifecycle of Job](#lifecycle-of-job)
   - [Descript a Job](#descript-a-job)
@@ -107,6 +108,19 @@ NOTE: `Job type extensions are not supported at the moment`.
 - [Special Thanks](#special-thanks)
 
 ---
+
+
+# Project structure
+
+```tree
+JobAgent.sln
+└── JobAgent.Console          // The console that invokes the terminal (entry point for execution)	
+└── JobSamples                // Some examples of Job invocations
+```
+- `JobAgent.Console` does not depend on the `JobSamples` library.
+- After `JobSamples` is generated, it can be copied into the `/Plugins/JobSamples` directory under the running directory of `JobAgent.Console`.
+- Without the plugin module, this project will not have any workload.
+
 
 
 # Quick Start (Simple Example)
@@ -487,8 +501,7 @@ NuGet\Install-Package Aicrosoft.Extensions.Hosting
 ```
 - The plugin assembly is your business module, where you can fully implement complex business logic.
 - As long as the corresponding Job description is implemented, it will be called by the framework.
-- ⚠️ Add `<EnableDynamicLoading>true</EnableDynamicLoading>` to the project properties of the plugin assembly to copy all the package DLLs.
-
+- When a plugin assembly has dependencies on libraries outside of those in JobAgent, add `<EnableDynamicLoading>true</EnableDynamicLoading>` in the assembly properties.⚠️
 
 
 ### Plugin Configuration Class
@@ -708,7 +721,7 @@ Available Docker registries:
 
 - <https://hub.docker.com/r/aicrosoft/jobagent>
 - <https://github.com/neatFactory/JobAgent/pkgs/container/jobagent>
-Visit <https://hub.docker.com/r/aicrosoft/jobagent> to get the latest Docker image.
+> Visit <https://hub.docker.com/r/aicrosoft/jobagent> to get the latest Docker image.
 
 ```shell
 ## Pre-create Empty Directories on the Host Machine and Assign Permissions

@@ -18,7 +18,7 @@
 [9]: https://img.shields.io/badge/license-Apache-blue.svg
 [10]: LICENSE
 
-👉 [View the English documentation](../../README.md) 📖
+📖👉 [View the English documentation](../../README.md) 
 
 [JobAgent](https://github.com/neatFactory/JobAgent ) 是一个易于使用和扩展的任务调度客户端，支持多种作业触发类型。它是使用 [JobsFactory](https://www.nuget.org/packages/Aicrosoft.Scheduling/ ) 任务调度框架实现的。使用 [dotnet8](https://dotnet.microsoft.com/en-us/ ) 编写。这是我对早期开源项目 [BeesTask](https://github.com/Aicrosoft/BeesTask ) 的升级和重构。
 
@@ -61,6 +61,7 @@ NOTE： `暂时不提供Job类型的扩展`。
   - [适用场景](#适用场景)
   - [常用使用举例](#常用使用举例)
   - [支持的任务类型](#支持的任务类型)
+- [项目结构](#项目结构)
 - [快速开始(简单示例)](#快速开始简单示例)
   - [Job的生命周期](#job的生命周期)
   - [描述一个Job](#描述一个job)
@@ -108,6 +109,18 @@ NOTE： `暂时不提供Job类型的扩展`。
 - [特别感谢](#特别感谢)
 
 ---
+
+
+# 项目结构
+
+```tree
+JobAgent.sln
+└── JobAgent.Console          // 调用终端（执行入口）	
+└── JobSamples                // 一些Job调用示例
+```
+- JobAgent.Console 并不依赖`JobSamples`库；
+- JobSamples 生成后，拷入JobAgent.Console运行目录下的/Plugins/JobSamplesr即可；
+- 如果没有插件模块，该项目不会有工作负载。
 
 
 # 快速开始(简单示例)
@@ -493,7 +506,7 @@ NuGet\Install-Package Aicrosoft.Extensions.Hosting
 ```
 - 插件程序集是你的业务模块，可以尽情的实现复杂的业务逻辑。
 - 只要实现了对应Job描述，就会被框架调用。
-- ⚠️ 插件程序集项目属性里要加上 `<EnableDynamicLoading>true</EnableDynamicLoading>` 以便将所有的包的dll都拷贝过去。
+- 当插件程序集中依赖有JobAgent中依赖以外的库时，在程序集属性中加上`<EnableDynamicLoading>true</EnableDynamicLoading>`。 ⚠️
 
 ### 插件配置类
 - 它会自动把插件程序集中的服务添加到DI中。
@@ -707,9 +720,17 @@ install -u  # uninstall it
 可用的 docker 注册表：
 - <https://hub.docker.com/r/aicrosoft/jobagent>
 - <https://github.com/neatFactory/JobAgent/pkgs/container/jobagent>
-访问 <https://hub.docker.com/r/aicrosoft/jobagent> 获取最新的 docker 镜像。
+> 访问 <https://hub.docker.com/r/aicrosoft/jobagent> 获取最新的 docker 镜像。
 
 ```shell
+# 快速创建
+sudo docker run -d \
+  --name jobagent \
+  aicrosoft/jobagent:latest
+
+
+# 映射卷
+
 ## 在宿主机预建空目录并赋权
 sudo mkdir -p /apps/ja/logs /apps/ja/plugins /apps/ja/states
 sudo chmod -R 777 /apps/ja

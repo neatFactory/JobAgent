@@ -38,6 +38,9 @@ jobs:
             TAG_VERSION="${TAG_NAME#[vV]}"  # 去掉 v/V 前缀
             VERSION="$TAG_VERSION"
             echo "Detected tag: $TAG_NAME -> VERSION=$VERSION"
+          else
+            VERSION="$BASE_VERSION"
+            echo "No tag detected. Using base version: VERSION=$VERSION"
           fi
 
           # set outputs for version
@@ -66,18 +69,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 3. 一次构建 + 同时推两个库
-      - name: Build and push (multi-registry)
+
+       # ========== A) 构建 chiseled 瘦镜像 ==========
+      - name: Build & push chiseled
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: build/dockerfiles/Dockerfile.jobagent
+          file: build/scripts/Dockerfile
+          target: chiseled          # 关键：只构建 chiseled 阶段
           push: true
-          # 同一份镜像层，两个仓库、两个 tag
           tags: |
             ${{ env.DOCKERHUB_REPO }}:latest
             ${{ env.DOCKERHUB_REPO }}:${{ steps.set_version.outputs.version }}
             ${{ env.GHCR_REPO_LC }}:latest
             ${{ env.GHCR_REPO_LC }}:${{ steps.set_version.outputs.version }}
 
-            
+      # ========== B) 构建 debug 镜像 ==========
+      - name: Build & push debug
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: build/scripts/Dockerfile
+          target: debug             # 关键：只构建 debug 阶段
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_REPO }}:debug
+            ${{ env.DOCKERHUB_REPO }}:${{ steps.set_version.outputs.version }}-debug
+            ${{ env.GHCR_REPO_LC }}:debug
+            ${{ env.GHCR_REPO_LC }}:debug-${{ steps.set_version.outputs.version }}
