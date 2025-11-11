@@ -1,0 +1,16 @@
+{
+  "Jobs": {
+    //In the default module's Jobs configuration,should use different keys to distinguish plugin name.
+    "JobSamples": [
+      {
+        //"enable": false,
+        "name": "Interval-Sample1",
+        "trigger": "00:00:10",
+        "workerName": "SimpleWorker",
+        "extend": {
+          "Hellow": "world"
+        }
+      }
+    ]
+  }
+}
