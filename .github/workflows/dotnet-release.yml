@@ -45,6 +45,9 @@ jobs:
             TAG_VERSION="${TAG_NAME#[vV]}"  # 去掉 v/V 前缀
             VERSION="$TAG_VERSION"
             echo "Detected tag: $TAG_NAME -> VERSION=$VERSION"
+          else
+            VERSION="$BASE_VERSION"
+            echo "No tag detected. Using base version: VERSION=$VERSION"
           fi
 
           # set outputs for version
