@@ -723,10 +723,10 @@ install -u  # uninstall it
 > 访问 <https://hub.docker.com/r/aicrosoft/jobagent> 获取最新的 docker 镜像。
 
 ```shell
-# 快速创建
+# 调试创建，可以进到容器中进行操作
 sudo docker run -d \
   --name jobagent \
-  aicrosoft/jobagent:latest
+  aicrosoft/jobagent:debug
 
 
 # 映射卷

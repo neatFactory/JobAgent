@@ -54,6 +54,13 @@ Available Docker registries:
 > Visit <https://hub.docker.com/r/aicrosoft/jobagent> to get the latest Docker image.
 
 ```shell
+# Debugging creation, you can enter the container to perform operations
+sudo docker run -d \
+  --name jobagent \
+  aicrosoft/jobagent:debug
+
+# Volume mapping creation
+
 ## Pre-create Empty Directories on the Host Machine and Assign Permissions
 sudo mkdir -p /apps/ja/logs /apps/ja/plugins /apps/ja/states
 sudo chmod -R 777 /apps/ja
