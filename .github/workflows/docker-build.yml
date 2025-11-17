@@ -29,9 +29,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BASE_VERSION="0.0.1"  # default version, can be modified as needed
+          BASE_VERSION="0.0.1-alpha"  # alpha version
           REF="${GITHUB_REF}"
-         
+
           # Use tag version
           if [[ "$REF" == refs/tags/* ]]; then
             TAG_NAME="${REF#refs/tags/}"
@@ -45,7 +45,7 @@ jobs:
 
           # set outputs for version
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-         
+
       - name: Docker Tag Version
         run: |
           echo "Docker Tag: ${{ steps.set_version.outputs.version }} "
@@ -69,14 +69,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-
-       # ========== A) 构建 chiseled 瘦镜像 ==========
+        # ========== A) 构建 chiseled 瘦镜像 ==========
       - name: Build & push chiseled
         uses: docker/build-push-action@v4
         with:
           context: .
           file: build/scripts/Dockerfile
-          target: chiseled          # 关键：只构建 chiseled 阶段
+          target: chiseled # 关键：只构建 chiseled 阶段
           push: true
           tags: |
             ${{ env.DOCKERHUB_REPO }}:latest
@@ -90,10 +89,10 @@ jobs:
         with:
           context: .
           file: build/scripts/Dockerfile
-          target: debug             # 关键：只构建 debug 阶段
+          target: debug # 关键：只构建 debug 阶段
           push: true
           tags: |
             ${{ env.DOCKERHUB_REPO }}:debug
             ${{ env.DOCKERHUB_REPO }}:${{ steps.set_version.outputs.version }}-debug
             ${{ env.GHCR_REPO_LC }}:debug
-            ${{ env.GHCR_REPO_LC }}:debug-${{ steps.set_version.outputs.version }}
+            ${{ env.GHCR_REPO_LC }}:${{ steps.set_version.outputs.version }}-debug
