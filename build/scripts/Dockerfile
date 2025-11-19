@@ -12,7 +12,7 @@ RUN dotnet restore JobSamples/JobSamples.csproj --runtime linux-x64
 COPY ["JobSamples/", "JobSamples/"]
 RUN dotnet build JobSamples/JobSamples.csproj \
     -c Release \
-    -o /app/Plugins/JobSamples \
+    -o /plugin/Plugins/JobSamples \
     -r linux-x64 \
     -p:PublishReadyToRun=true \
     -p:PublishSingleFile=false \
@@ -32,7 +32,7 @@ RUN dotnet publish JobAgent.Console/JobAgent.Console.csproj \
     -p:SelfContained=false
 
 # 提前建好目录并赋权（在 build 容器里操作，下面会被 COPY 走）
-RUN mkdir -p /app/states /app/logs && \
+RUN mkdir -p /app/states /app/logs /app/Plugins && \
     chmod -R 755 /app/states /app/logs && \
     chown -R 65532:65532 /app/states /app/logs
 
@@ -53,5 +53,5 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS debug
 WORKDIR /app
 # 这里不需要改属主，默认 root 即可，方便进去装工具
 COPY --from=build /app .
-# 如果希望也用非 root，可以照抄上面的 chown，这里省略
+COPY --from=build /plugin .
 ENTRYPOINT ["./JobAgent"]

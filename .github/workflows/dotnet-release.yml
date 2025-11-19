@@ -36,9 +36,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BASE_VERSION="0.0.1"  # default version, can be modified as needed
+          BASE_VERSION="0.0.1-alpha"  # alpha version
           REF="${GITHUB_REF}"
-         
+
           # Use tag version
           if [[ "$REF" == refs/tags/* ]]; then
             TAG_NAME="${REF#refs/tags/}"
