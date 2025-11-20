@@ -69,13 +69,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-        # ========== A) 构建 chiseled 瘦镜像 ==========
+      # ========== A) 构建 chiseled 瘦镜像 ==========
       - name: Build & push chiseled
         uses: docker/build-push-action@v4
         with:
           context: .
           file: build/scripts/Dockerfile
-          target: chiseled # 关键：只构建 chiseled 阶段
+          target: chiseled
           push: true
           tags: |
             ${{ env.DOCKERHUB_REPO }}:latest
@@ -83,16 +83,26 @@ jobs:
             ${{ env.GHCR_REPO_LC }}:latest
             ${{ env.GHCR_REPO_LC }}:${{ steps.set_version.outputs.version }}
 
+      # ========== B) 构建 secure 镜像 ==========
+      - name: Build & push debug
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: build/scripts/Dockerfile
+          target: secure
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_REPO }}:secure
+            ${{ env.GHCR_REPO_LC }}:secure
+
       # ========== B) 构建 debug 镜像 ==========
       - name: Build & push debug
         uses: docker/build-push-action@v4
         with:
           context: .
           file: build/scripts/Dockerfile
-          target: debug # 关键：只构建 debug 阶段
+          target: debug
           push: true
           tags: |
             ${{ env.DOCKERHUB_REPO }}:debug
-            ${{ env.DOCKERHUB_REPO }}:${{ steps.set_version.outputs.version }}-debug
             ${{ env.GHCR_REPO_LC }}:debug
-            ${{ env.GHCR_REPO_LC }}:${{ steps.set_version.outputs.version }}-debug
