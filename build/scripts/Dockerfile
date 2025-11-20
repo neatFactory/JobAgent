@@ -37,21 +37,26 @@ RUN mkdir -p /app/states /app/logs /app/Plugins && \
     chown -R 65532:65532 /app/states /app/logs
 
 # ==============================================================================
-# 阶A：chiseled 瘦镜像（生产用）（chiseled —— 无 sh、无 chmod）
+# 阶A：chiseled 瘦镜像（生产用）（chiseled —— 无 sh、无 chmod） 1.2.3.4 | 普通版本 | root权限 + 无shell
 # ==============================================================================
 FROM mcr.microsoft.com/dotnet/runtime:8.0-jammy-chiseled AS chiseled
 WORKDIR /app
-# 直接拷过去并把属主改成非 root
+COPY --from=build /app .
+ENTRYPOINT ["./JobAgent"]
+
+# ==============================================================================
+# 阶B：chiseled 瘦镜像（生产用）（chiseled —— 无 sh、无 chmod） secure  | 安全版本 | 最小权限 + 无shell
+# ==============================================================================
+FROM mcr.microsoft.com/dotnet/runtime:8.0-jammy-chiseled AS secure
+WORKDIR /app
 COPY --from=build --chown=65532:65532 /app .
 USER 65532
 ENTRYPOINT ["./JobAgent"]
 
 # ==============================================================================
-# 阶段B：带 SDK 的 debug 调试镜像（调试/排障用|带 shell）
+# 阶段C：带 SDK 的 debug 调试镜像（调试/排障用|带 shell）  debug   | 测试版本 | root根限 + 有shell + JobSamples插件
 # ==============================================================================
 FROM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS debug
 WORKDIR /app
-# 这里不需要改属主，默认 root 即可，方便进去装工具
-COPY --from=build /app .
-COPY --from=build /plugin .
+COPY --from=build /app /plugin ./
 ENTRYPOINT ["./JobAgent"]

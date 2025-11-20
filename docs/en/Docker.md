@@ -54,23 +54,42 @@ Available Docker registries:
 > Visit <https://hub.docker.com/r/aicrosoft/jobagent> to get the latest Docker image.
 
 
-### Debugging creation
+### Available Docker Versions
+| Version | Type            | Description                                         |
+| :------ | :-------------- | :-------------------------------------------------- |
+| 1.2.3.4 | Standard        | Root privileges + No shell series                   |
+| latest  | Latest Standard | Root privileges + No shell, latest                  |
+| secure  | Secure          | Minimum privileges + No shell, latest               |
+| debug   | Debug           | Root privileges + Shell + JobSamples plugin, latest |
+
+### Debug Creation
 ```shell
 # You can enter the container to perform operations
 sudo docker run -d \
   --name jobagent-de \
   aicrosoft/jobagent:debug
-### The DEBUG version of the image already has the JobSamples plugin.
+## The DEBUG version image already includes the JobSamples plugin.
 ```
 
-### Production creation
+### Production Environment
 ```shell
-## Pre-create Empty Directories on the Host Machine and Assign Permissions
+## Create a container.
+sudo docker run -d \
+  --name jobagent \
+  -v /apps/ja/logs:/app/logs:rw \
+  -v /apps/ja/plugins:/app/Plugins:rw \
+  -v /apps/ja/states:/app/states:rw \
+  aicrosoft/jobagent:latest
+```
+
+### Production Environment with Minimum Privileges
+```shell
+## Pre-create empty directories on the host machine and assign permissions
 sudo mkdir -p /apps/ja/logs /apps/ja/plugins /apps/ja/states
 sudo chmod -R 777 /apps/ja
 sudo chown -R 65532:65532 /apps/ja
 
-## When creating the container, the plugin directory is empty in the non-DEBUG version.
+## Create a container.
 sudo docker run -d \
   --name jobagent \
   -v /apps/ja/logs:/app/logs:rw \

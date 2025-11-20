@@ -104,8 +104,10 @@ NOTE： `暂时不提供Job类型的扩展`。
   - [手动运行](#手动运行)
   - [作为 Windows 服务](#作为-windows-服务)
   - [Docker 方式](#docker-方式)
+    - [Docker 的可用版本](#docker-的可用版本)
     - [调试创建](#调试创建)
     - [生产环境](#生产环境)
+    - [生产环境 最小权限](#生产环境-最小权限)
     - [Docker参数说明](#docker参数说明)
 - [贡献](#贡献)
 - [特别感谢](#特别感谢)
@@ -724,6 +726,15 @@ install -u  # uninstall it
 - <https://github.com/neatFactory/JobAgent/pkgs/container/jobagent>
 > 访问 <https://hub.docker.com/r/aicrosoft/jobagent> 获取最新的 docker 镜像。
 
+### Docker 的可用版本
+| 版本    | 类型     | 说明                                       |
+| ------- | :------- | :----------------------------------------- |
+| 1.2.3.4 | 普通版本 | root权限 + 无shell 系列                    |
+| latest  | 普通最新 | root权限 + 无shell ，最新                  |
+| secure  | 安全版本 | 最小权限 + 无shell，最新                   |
+| debug   | 测试版本 | root根限 + 有shell + JobSamples插件 ，最新 |
+
+
 ### 调试创建
 ```shell
 # 可以进到容器中进行操作
@@ -735,12 +746,23 @@ sudo docker run -d \
 
 ### 生产环境
 ```shell
+## 创建容器。
+sudo docker run -d \
+  --name jobagent \
+  -v /apps/ja/logs:/app/logs:rw \
+  -v /apps/ja/plugins:/app/Plugins:rw \
+  -v /apps/ja/states:/app/states:rw \
+  aicrosoft/jobagent:latest
+```
+
+### 生产环境 最小权限
+```shell
 ## 在宿主机预建空目录并赋权
 sudo mkdir -p /apps/ja/logs /apps/ja/plugins /apps/ja/states
 sudo chmod -R 777 /apps/ja
 sudo chown -R 65532:65532 /apps/ja
 
-## 创建容器，非DEBUG版本中，插件目录为空。
+## 创建容器。
 sudo docker run -d \
   --name jobagent \
   -v /apps/ja/logs:/app/logs:rw \
